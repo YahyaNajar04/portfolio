@@ -1,5 +1,5 @@
 import { defineCollection} from 'astro:content';
-import { glob } from 'astro/loaders';
+import { glob, file } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const metric = z.object({
@@ -33,6 +33,20 @@ const projects = defineCollection({
   }),
 });
 
+const experience = defineCollection({
+  loader: file('src/content/experience.json'),
+  schema: z.object({
+    role: z.string(),
+    org: z.string(),
+    start: z.string(),          // "Oct 2023"
+    end: z.string(),            // "Feb 2024" or "Present"
+    order: z.number(),          // lower = more recent
+    points: z.array(z.string()).max(3),
+    stack: z.array(z.string()).default([]),
+  }),
+});
+
 export const collections = {
       projects,
+      experience,
 }

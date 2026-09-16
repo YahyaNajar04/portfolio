@@ -1,18 +1,18 @@
 ---
-import '../styles/global.css';
+import "../styles/global.css";
 
 interface Props {
   title: string;
   description: string;
-  /** Path to an OG image in /public, e.g. "/og/covertype.png" */
   ogImage?: string;
 }
 
-const { title, description, ogImage = '/og/default.png' } = Astro.props;
+const { title, description, ogImage } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const og = new URL(ogImage, Astro.site);
+const og = ogImage ? new URL(ogImage, Astro.site) : null;
 const year = new Date().getFullYear();
 ---
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -25,13 +25,16 @@ const year = new Date().getFullYear();
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={og} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary_large_image" />
+    {og && <meta property="og:image" content={og} />}
+    <meta
+      name="twitter:card"
+      content={og ? "summary_large_image" : "summary"}
+    />
 
     <link rel="sitemap" href="/sitemap-index.xml" />
     <script is:inline>
-      document.documentElement.classList.add('js');
+      document.documentElement.classList.add("js");
     </script>
   </head>
 
@@ -42,8 +45,9 @@ const year = new Date().getFullYear();
       <a href="/" class="meta">Muhammed Yahya Najar</a>
       <nav class="meta">
         <a href="/#work">Work</a>
+        <a href="/#experience">Experience</a>
         <a href="/#about">About</a>
-        <a href="mailto:mynajar04@gmail.com">Email</a>
+        <a href="/#contact">Contact</a>
       </nav>
     </header>
 
@@ -60,17 +64,17 @@ const year = new Date().getFullYear();
     </footer>
 
     <script>
-      const items = document.querySelectorAll<HTMLElement>('.reveal');
+      const items = document.querySelectorAll<HTMLElement>(".reveal");
       if (items.length) {
         const io = new IntersectionObserver(
           (entries) => {
             for (const e of entries) {
               if (!e.isIntersecting) continue;
-              e.target.classList.add('is-visible');
-              io.unobserve(e.target);     // reveal once, then stop watching
+              e.target.classList.add("is-visible");
+              io.unobserve(e.target); // reveal once, then stop watching
             }
           },
-          { rootMargin: '0px 0px -12% 0px', threshold: 0.1 }
+          { rootMargin: "0px 0px -12% 0px", threshold: 0.1 },
         );
         items.forEach((el) => io.observe(el));
       }

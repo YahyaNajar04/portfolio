@@ -1,14 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
-import Base from '../layouts/Base.astro';
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
 
-const all = (await getCollection('projects'))
+const all = (await getCollection("projects"))
   .filter((p) => !p.data.draft)
   .sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 
-const caseStudies = all.filter((p) => p.data.tier === 'case-study');
-const secondary  = all.filter((p) => p.data.tier === 'secondary');
+const caseStudies = all.filter((p) => p.data.tier === "case-study");
+const secondary = all.filter((p) => p.data.tier === "secondary");
+const experience = (await getCollection("experience")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
 ---
+
 <Base
   title="Muhammed Yahya Najar — Software Engineer"
   description="Software engineer shipping production web, mobile and desktop systems, and building toward AI engineering."
@@ -24,49 +28,193 @@ const secondary  = all.filter((p) => p.data.tier === 'secondary');
     </p>
   </section>
 
+  <section class="wrap" id="about">
+    <hr class="rule" />
+    <h2 class="reveal">About</h2>
+    <div class="reveal about">
+      <p>
+        I build production systems across web, mobile and desktop — most
+        recently a retail inventory app in React Native and a cross-platform
+        desktop time tracker in Tauri. I hold an MSc in Artificial Intelligence
+        and a BSc in Software Engineering from Asia Pacific University in
+        Malaysia.
+      </p>
+      <p>
+        My AI work so far is a hackathon claim-verification system and
+        coursework-grade supervised learning. I'm honest about that: I'm a
+        software engineer moving toward AI engineering, not someone claiming to
+        have arrived. What I bring is shipping discipline — leakage-safe
+        pipelines, measured results, and the willingness to say what a number
+        actually means.
+      </p>
+      <p class="meta">
+        <a href="/Muhammed_Yahya_Najar_Resume_2026.pdf">Download résumé (PDF)</a>
+      </p>
+    </div>
+  </section>
+
   <section class="wrap" id="work">
     <hr class="rule" />
     <h2 class="reveal">Selected work</h2>
 
-    {caseStudies.map((p, i) => (
-      <article class="case reveal" style={`--delay:${i * 80}ms`}>
-        <p class="meta">
-          {p.data.year} · {p.data.role}
-          {p.data.status !== 'shipped' && <span class="badge">{p.data.status}</span>}
-        </p>
-        <h3><a href={`/work/${p.id}/`}>{p.data.title}</a></h3>
-        <p>{p.data.summary}</p>
-        <p class="meta stack">{p.data.stack.join(' · ')}</p>
-      </article>
-    ))}
+    {
+      caseStudies.map((p, i) => (
+        <article class="case reveal" style={`--delay:${i * 80}ms`}>
+          <p class="meta">
+            {p.data.year} · {p.data.role}
+            {p.data.status !== "shipped" && (
+              <span class="badge">{p.data.status}</span>
+            )}
+          </p>
+          <h3>
+            <a href={`/work/${p.id}/`}>{p.data.title}</a>
+          </h3>
+          <p>{p.data.summary}</p>
+          <p class="meta stack">{p.data.stack.join(" · ")}</p>
+        </article>
+      ))
+    }
   </section>
 
-  {secondary.length > 0 && (
-    <section class="wrap">
-      <hr class="rule" />
-      <h2 class="reveal">Also shipped</h2>
-      <ul class="plain reveal">
-        {secondary.map((p) => (
-          <li>
-            <strong>{p.data.title}</strong> — {p.data.summary}
-            <span class="meta"> {p.data.year}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
+  {
+    secondary.length > 0 && (
+      <section class="wrap">
+        <hr class="rule" />
+        <h2 class="reveal">Also shipped</h2>
+        <ul class="plain reveal">
+          {secondary.map((p) => (
+            <li>
+              <strong>{p.data.title}</strong> — {p.data.summary}
+              <span class="meta"> {p.data.year}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="wrap" id="experience">
+    <hr class="rule" />
+    <h2 class="reveal">Experience</h2>
+    {
+      experience.map((e, i) => (
+        <article class="job reveal" style={`--delay:${i * 60}ms`}>
+          <p class="meta">
+            {e.data.start} — {e.data.end}
+          </p>
+          <div>
+            <h3>
+              {e.data.role} <span class="org">· {e.data.org}</span>
+            </h3>
+            <ul class="plain tight">
+              {e.data.points.map((p) => (
+                <li>{p}</li>
+              ))}
+            </ul>
+            {e.data.stack.length > 0 && (
+              <p class="meta">{e.data.stack.join(" · ")}</p>
+            )}
+          </div>
+        </article>
+      ))
+    }
+  </section>
+
+  <section class="wrap" id="contact">
+    <hr class="rule" />
+    <h2 class="reveal">Contact</h2>
+    <div class="reveal">
+      <p class="contact-line">
+        <a href="mailto:mynajar04@gmail.com">mynajar04@gmail.com</a>
+      </p>
+      <p>
+        Open to senior engineering roles and to client work through Coderift.
+        Based between India and Malaysia — remote or relocating.
+      </p>
+      <p class="meta contact-links">
+        <a href="/Muhammed_Yahya_Najar_Resume_2026.pdf">Résumé (PDF)</a>
+        <a href="https://github.com/YahyaNajar04">GitHub</a>
+        <a href="https://www.linkedin.com/in/yahya-najar">LinkedIn</a>
+      </p>
+    </div>
+  </section>
 </Base>
 
 <style>
-  .hero { padding-block: clamp(4rem, 14vh, 9rem) var(--step); }
-  .lede { font-size: 1.25rem; color: var(--muted); margin-bottom: 2rem; }
-  .case { padding-block: 2.5rem; border-bottom: 1px solid var(--line); }
-  .case:last-child { border-bottom: 0; }
-  .case h3 { margin: 0.5rem 0; }
-  .case h3 a { text-decoration: none; }
-  .stack { margin-top: 0.75rem; }
-  .badge { color: var(--accent); margin-left: 0.75rem; }
-  .plain { list-style: none; padding: 0; }
-  .plain li { padding-block: 0.9rem; border-bottom: 1px solid var(--line); max-width: var(--measure); }
-  section { padding-block: var(--step) 0; }
+  .hero {
+    padding-block: clamp(4rem, 14vh, 9rem) var(--step);
+  }
+  .lede {
+    font-size: 1.25rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+  .case {
+    padding-block: 2.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .case:last-child {
+    border-bottom: 0;
+  }
+  .case h3 {
+    margin: 0.5rem 0;
+  }
+  .case h3 a {
+    text-decoration: none;
+  }
+  .stack {
+    margin-top: 0.75rem;
+  }
+  .badge {
+    color: var(--accent);
+    margin-left: 0.75rem;
+  }
+  .plain {
+    list-style: none;
+    padding: 0;
+  }
+  .plain li {
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--line);
+    max-width: var(--measure);
+  }
+  section {
+    padding-block: var(--step) 0;
+  }
+  .job {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 1.5rem;
+    padding-block: 2rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .job h3 {
+    font-size: 1.25rem;
+    margin: 0 0 0.6rem;
+  }
+  .job .org {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--muted);
+  }
+  .tight li {
+    border: 0;
+    padding-block: 0.25rem;
+  }
+  .contact-line {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+  }
+  .contact-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+  @media (max-width: 700px) {
+    .job {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
 </style>

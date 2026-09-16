@@ -1,0 +1,46 @@
+[
+  {
+    "id": "coderift",
+    "role": "Founder & Engineer",
+    "org": "Coderift Technologies",
+    "start": "2025", "end": "Present", "order": 1,
+    "points": [
+      "Solo software venture taking on web, mobile and AI integration work.",
+      "Client delivery end to end — scoping, architecture, build, deployment, handover."
+    ],
+    "stack": ["React Native", "Astro", "Tauri", "Supabase", "AWS"]
+  },
+  {
+    "id": "llm-eval",
+    "role": "Freelance AI & Frontend Developer",
+    "org": "Contract",
+    "start": "Nov 2025", "end": "Dec 2025", "order": 2,
+    "points": [
+      "Systematic prompt engineering and evaluation of a Grok-powered LLM — accuracy, consistency and edge-case behaviour, reported back as actionable findings.",
+      "Built an accompanying responsive landing page in plain HTML and CSS."
+    ],
+    "stack": ["LLM evaluation", "Prompt engineering", "HTML/CSS"]
+  },
+  {
+    "id": "voice-tracker",
+    "role": "Freelance Mobile Developer",
+    "org": "Contract",
+    "start": "Feb 2025", "end": "May 2025", "order": 3,
+    "points": [
+      "React Native app for voice-based employee time tracking — audio capture, timestamped activity logs, structured cloud storage.",
+      "Reached consistent daily use among the client's end users."
+    ],
+    "stack": ["React Native", "TypeScript"]
+  },
+  {
+    "id": "jalal",
+    "role": "Software Engineer Intern",
+    "org": "Jalal Creative Solutions",
+    "start": "Oct 2023", "end": "Feb 2024", "order": 4,
+    "points": [
+      "Built and deployed a car-rental web platform with integrated booking and payment APIs.",
+      "Custom JavaScript and CSS work to meet client requirements, plus SEO and page-load improvements verified with PageSpeed Insights."
+    ],
+    "stack": ["WordPress", "JavaScript", "PHP"]
+  }
+]
