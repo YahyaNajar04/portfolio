@@ -1,11 +1,72 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const all = (await getCollection('projects'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
+
+const caseStudies = all.filter((p) => p.data.tier === 'case-study');
+const secondary  = all.filter((p) => p.data.tier === 'secondary');
 ---
+<Base
+  title="Muhammed Yahya Najar — Software Engineer"
+  description="Software engineer shipping production web, mobile and desktop systems, and building toward AI engineering."
+>
+  <section class="wrap hero">
+    <h1>Software engineer.<br />Building toward AI.</h1>
+    <p class="lede">
+      I ship production web, mobile and desktop systems. MSc in AI from APU
+      Malaysia.
+    </p>
+    <p class="meta">
+      <a href="mailto:mynajar04@gmail.com">mynajar04@gmail.com</a>
+    </p>
+  </section>
 
-<Layout>
-	<Welcome />
-</Layout>
+  <section class="wrap" id="work">
+    <hr class="rule" />
+    <h2 class="reveal">Selected work</h2>
+
+    {caseStudies.map((p, i) => (
+      <article class="case reveal" style={`--delay:${i * 80}ms`}>
+        <p class="meta">
+          {p.data.year} · {p.data.role}
+          {p.data.status !== 'shipped' && <span class="badge">{p.data.status}</span>}
+        </p>
+        <h3><a href={`/work/${p.id}/`}>{p.data.title}</a></h3>
+        <p>{p.data.summary}</p>
+        <p class="meta stack">{p.data.stack.join(' · ')}</p>
+      </article>
+    ))}
+  </section>
+
+  {secondary.length > 0 && (
+    <section class="wrap">
+      <hr class="rule" />
+      <h2 class="reveal">Also shipped</h2>
+      <ul class="plain reveal">
+        {secondary.map((p) => (
+          <li>
+            <strong>{p.data.title}</strong> — {p.data.summary}
+            <span class="meta"> {p.data.year}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>
+
+<style>
+  .hero { padding-block: clamp(4rem, 14vh, 9rem) var(--step); }
+  .lede { font-size: 1.25rem; color: var(--muted); margin-bottom: 2rem; }
+  .case { padding-block: 2.5rem; border-bottom: 1px solid var(--line); }
+  .case:last-child { border-bottom: 0; }
+  .case h3 { margin: 0.5rem 0; }
+  .case h3 a { text-decoration: none; }
+  .stack { margin-top: 0.75rem; }
+  .badge { color: var(--accent); margin-left: 0.75rem; }
+  .plain { list-style: none; padding: 0; }
+  .plain li { padding-block: 0.9rem; border-bottom: 1px solid var(--line); max-width: var(--measure); }
+  section { padding-block: var(--step) 0; }
+</style>

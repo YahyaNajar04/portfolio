@@ -1,0 +1,78 @@
+---
+title: Forest Cover Type Classification
+summary: Predicting which of seven tree species dominates a 30×30m cell in Colorado from terrain and soil data — and doing the model comparison properly.
+year: 2025
+status: research
+role: Sole author — MSc Applied Machine Learning, Asia Pacific University
+tier: case-study
+order: 30
+stack: [Python, scikit-learn, XGBoost, pandas, UCI Covertype]
+metrics:
+  - label: XGBoost — accuracy
+    value: "0.957"
+    source: "Held-out 20% stratified test split, 581,012 rows. Same split used for all three models (XGBoost.py)."
+  - label: XGBoost — macro F1
+    value: "0.930"
+    source: "Same split. Macro rather than weighted, because classes 4–7 are rare and weighted F1 would hide them."
+  - label: Random Forest — accuracy / macro F1
+    value: "0.917 / 0.871"
+    source: "Same split (RandomForest.py). Logistic Regression baseline: 0.642 / 0.513."
+---
+
+581,012 cells in Roosevelt National Forest. 54 features — elevation, slope,
+aspect, hillshade at three times of day, distance to water, roads and historic
+fire points, plus one-hot wilderness area and soil type. Seven cover types, and
+two of them account for most of the data.
+
+## The comparison is the work
+
+Three models is easy. Three models you can *honestly* compare is not, and it's
+where most of the effort went.
+
+**One split, shared.** Same `random_state`, same stratified 80/20, all three
+models scored on the identical held-out set. Without that, the numbers aren't
+comparable and the conclusion is decoration.
+
+**Preprocessing inside the pipeline.** Every transformer lives in a
+`ColumnTransformer` inside a `Pipeline`, so it refits per cross-validation fold
+and never sees the validation data. Scaling happens for logistic regression and
+not for the trees, because trees are scale-invariant and standardising them is
+just wasted compute.
+
+**Macro F1 as the selection criterion, not accuracy.** Classes 4 through 7 are
+rare. A model that ignores them entirely still scores well on accuracy. Macro F1
+weights every class equally, so the metric notices when the model quietly gives
+up on the minority ones.
+
+**Imbalance handled per model family** — `class_weight="balanced"` for logistic
+regression and random forest, per-sample class weights for XGBoost, because
+their APIs express the same idea differently.
+
+## The result that's actually interesting
+
+Tuned Random Forest scored *worse on accuracy* than my hand-picked baseline.
+
+Two things cause that, and both are worth saying out loud. The "baseline" wasn't
+scikit-learn defaults — it was a config I'd chosen deliberately, so the
+comparison was really hand-tuning versus a randomised search. And the search
+optimised macro F1, which buys minority-class recall by spending overall
+accuracy. The tuned model is worse at the metric I wasn't optimising. That's the
+trade working as intended, not a bug.
+
+## What the model learned
+
+Top features: wilderness area (0.125) and elevation (0.078), then soil types.
+Which is the model rediscovering basic forest ecology — where you sit on the
+mountain, and what you're sitting on, determines what grows. That agreement with
+domain knowledge is a sanity check on the whole pipeline.
+
+## What I'd tighten
+
+The hyperparameter searches were thin — five draws from an eight-dimensional
+space for XGBoost, run on half the training set. Logistic regression got a full
+grid search on all the data, so the weakest model got the most thorough search
+and the strongest got the least. The ranking is safe at a 30-point gap, but the
+experiment doesn't establish it as cleanly as I'd want.
+
+And the metrics only ever printed to stdout. Plots got saved; the numbers
+didn't. A result you can't reload isn't a result.

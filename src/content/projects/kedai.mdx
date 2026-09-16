@@ -1,0 +1,60 @@
+---
+title: Kedai
+summary: A retail storefront and inventory app where the owner manages stock and customers browse live availability without ever making an account.
+year: 2026
+status: shipped
+role: Sole developer — architecture, implementation, release
+tier: case-study
+order: 20
+stack: [React Native (Expo), TypeScript, Supabase, NativeWind]
+links:
+  - label: Repository
+    url: https://github.com/YahyaNajar04
+---
+
+A convenience store needed two things from one app: a way for the owner to
+manage stock, and a way for customers to check what's actually on the shelf
+before walking over.
+
+## One codebase, two roles
+
+The obvious build is two apps, or one app with accounts for everyone. Both are
+wrong here. A second app doubles the release surface for a single-store client.
+And requiring customers to sign up to see whether milk is in stock is friction
+that kills the only thing the app is for.
+
+So: **accounts exist only for the owner.** Navigation is session-gated —
+authenticated sessions get inventory management, everyone else gets a read-only
+catalog. Customers never register.
+
+## Authorization lives in the database, not the client
+
+Session-gated navigation hides the management screens. It does not *protect*
+them — anyone can point a client at the API. So the actual rule is enforced in
+Postgres Row Level Security: the owner's session can write rows belonging to
+their store, and nothing else can write at all. The client-side gating is a
+convenience for the UI; RLS is the security boundary.
+
+That distinction matters more than it sounds. A client check is a suggestion.
+A row-level policy is a constraint the database enforces whether or not my code
+is correct.
+
+## Live stock, and the cost of it
+
+Inventory changes propagate to customer devices in seconds over Supabase
+Realtime, so the catalog reflects the shelf rather than the last app launch.
+Product images upload from camera or gallery to Supabase Storage, with cleanup
+for orphaned files when a product is removed — otherwise storage grows forever
+with images nothing references.
+
+The shared product catalog is self-seeding: generated-column normalisation plus
+unique constraints deduplicate entries, so adding a product is one tap and the
+catalog improves as it's used.
+
+## What it cost
+
+No customer accounts means no saved carts, no order history, no personalisation
+— and no way to add them later without a migration through every row that
+currently assumes an anonymous reader. That was the right trade for a
+single-store client who needed adoption more than features. It would be the
+wrong trade for a marketplace.

@@ -1,0 +1,64 @@
+---
+title: TruthLens
+summary: A claim-verification pipeline built at a hackathon — and the two flaws I found in it a year later when I reread my own training script.
+year: 2025
+status: archived
+role: Model training — feature pipeline and LightGBM classifier. Team project, 2025 Great Malaysia AI Hackathon.
+tier: case-study
+order: 10
+stack: [Python, scikit-learn, LightGBM, AWS Bedrock (Llama 3.1), AWS Lambda, Flask]
+metrics:
+  - label: Validation accuracy
+    value: "0.673"
+    source: "lgbm_nli_out/classification_report.txt — 162,653 held-out pairs. Optimistic; see the leakage note below."
+  - label: Macro F1
+    value: "0.643"
+    source: "Same run. Per-class F1: REFUTES 0.759, SUPPORTS 0.608, NEI 0.562."
+links:
+  - label: Repository (code is on the master branch)
+    url: https://github.com/kyawthihanaing/Fake-News-Detection
+---
+
+Paste a news URL, get a credibility verdict with reasoning. Three of us built it
+over a weekend at the Great Malaysia AI Hackathon. I did the model training —
+roughly twenty runs across twenty-eight hours to get a classifier that converged.
+
+## The architecture was the good decision
+
+Most teams that weekend threw an LLM at the whole problem and got something
+unmeasurable. We split it:
+
+- **TF-IDF + LightGBM** does the classification — word 1–2-grams and character
+  3–5-grams unioned into one feature space, gradient-boosted into three classes
+  (SUPPORTS / REFUTES / NEI), with balanced class weights.
+- **Llama 3.1 on Bedrock** writes the human-readable explanation — the part an
+  LLM is actually good at.
+- Retrieval against Wikipedia supplies evidence for the verdict.
+
+A small discriminative model making the decision means the decision is cheap,
+fast, and — crucially — *measurable*. The LLM never touches the label.
+
+## Two flaws I found a year later
+
+I reopened the repo in 2026 to write this page, and found things I hadn't seen
+at the time.
+
+**The model never saw any evidence.** The training script pairs each FEVER claim
+with a canned hypothesis from a fixed list — "This claim is true.", "Evidence
+contradicts this claim." — concatenates them, and vectorises. No Wikipedia
+passage ever reaches the classifier. So it isn't verifying claims against
+evidence; it's guessing whether a sentence *sounds* true from its wording. The
+retrieval layer existed in the product and not in the model.
+
+**The split leaked.** Every claim expands into ~14 template pairs *before*
+`train_test_split` runs, so the same claim lands in both train and validation.
+The 0.673 is measuring partly memorisation. Split by claim ID and it drops.
+
+## What I'd build instead
+
+Retrieve evidence with FAISS over a Wikipedia index, feed claim-plus-evidence to
+a cross-encoder so the model actually reads what it's judging, split by claim ID
+before any augmentation, and report on FEVER's real test set rather than a
+self-made validation slice.
+
+The number would almost certainly be lower. It would also mean something.

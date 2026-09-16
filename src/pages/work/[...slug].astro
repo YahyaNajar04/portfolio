@@ -1,0 +1,60 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects
+    .filter((p) => !p.data.draft && p.data.tier === 'case-study')
+    .map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const d = project.data;
+---
+<Base title={`${d.title} — Muhammed Yahya Najar`} description={d.summary}>
+  <article class="wrap study">
+    <p class="meta">{d.year} · {d.status} · {d.role}</p>
+    <h1>{d.title}</h1>
+    <p class="lede">{d.summary}</p>
+
+    {d.stack.length > 0 && <p class="meta">{d.stack.join(' · ')}</p>}
+
+    {d.metrics.length > 0 && (
+      <dl class="metrics">
+        {d.metrics.map((m) => (
+          <div>
+            <dt class="meta">{m.label}</dt>
+            <dd class="value">{m.value}</dd>
+            <dd class="prov">{m.source}</dd>
+          </div>
+        ))}
+      </dl>
+    )}
+
+    <hr class="rule" />
+    <div class="prose"><Content /></div>
+
+    {d.links.length > 0 && (
+      <p class="meta links">
+        {d.links.map((l) => <a href={l.url}>{l.label}</a>)}
+      </p>
+    )}
+    <p class="meta"><a href="/#work">← All work</a></p>
+  </article>
+</Base>
+
+<style>
+  .study { padding-block: 4rem 6rem; }
+  .lede { font-size: 1.25rem; color: var(--muted); }
+  .metrics { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    margin-block: 2.5rem; padding: 1.5rem; background: var(--tint); border-radius: 4px; }
+  .metrics div { margin: 0; }
+  .metrics dd { margin: 0; }
+  .value { font-family: var(--font-mono); font-size: 1.6rem; line-height: 1.2; margin-block: 0.3rem !important; }
+  .prov { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+  .prose { max-width: var(--measure); }
+  .prose :global(h2) { margin-top: 2.5rem; }
+  .links { display: flex; gap: 1.5rem; margin-top: 3rem; }
+</style>
