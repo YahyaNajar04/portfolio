@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import Analytics from '@vercel/analytics/astro';
+import Analytics from "@vercel/analytics/astro";
 
 interface Props {
   title: string;
@@ -22,6 +22,11 @@ const year = new Date().getFullYear();
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0e1a23" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -43,7 +48,10 @@ const year = new Date().getFullYear();
     <a href="#main" class="skip">Skip to content</a>
 
     <header class="wrap site-head">
-      <a href="/" class="meta">Muhammed Yahya Najar</a>
+      <a href="/" class="brand">
+        <img src="/logo-mark.png" alt="" width="30" height="30" />
+        <span class="meta">Muhammed Yahya Najar</span>
+      </a>
       <nav class="meta">
         <a href="/#work">Work</a>
         <a href="/#experience">Experience</a>
