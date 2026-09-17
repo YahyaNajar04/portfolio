@@ -26,7 +26,7 @@ const year = new Date().getFullYear();
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#0e1a23" />
+    <meta name="theme-color" content="#f6f4ef" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -40,7 +40,13 @@ const year = new Date().getFullYear();
 
     <link rel="sitemap" href="/sitemap-index.xml" />
     <script is:inline>
-      document.documentElement.classList.add("js");
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t) document.documentElement.dataset.theme = t;
+        } catch (e) {}
+        document.documentElement.classList.add("js");
+      })();
     </script>
   </head>
 
@@ -49,7 +55,7 @@ const year = new Date().getFullYear();
 
     <header class="wrap site-head">
       <a href="/" class="brand">
-        <img src="/logo-mark.png" alt="" width="30" height="30" />
+        <img src="/logo-mark.svg" alt="" width="26" height="26" />
         <span class="meta">Muhammed Yahya Najar</span>
       </a>
       <nav class="meta">
@@ -58,6 +64,12 @@ const year = new Date().getFullYear();
         <a href="/#about">About</a>
         <a href="/#contact">Contact</a>
       </nav>
+      <button
+        id="theme-toggle"
+        class="meta ghost"
+        type="button"
+        aria-label="Switch colour theme">Theme</button
+      >
     </header>
 
     <main id="main"><slot /></main>
@@ -88,5 +100,40 @@ const year = new Date().getFullYear();
         items.forEach((el) => io.observe(el));
       }
     </script>
+    <script>
+      const btn = document.getElementById("theme-toggle");
+      const root = document.documentElement;
+      const label = () => {
+        const dark = root.dataset.theme
+          ? root.dataset.theme === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        btn!.textContent = dark ? "Light" : "Dark";
+      };
+      label();
+      btn?.addEventListener("click", () => {
+        const dark = root.dataset.theme
+          ? root.dataset.theme === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        root.dataset.theme = dark ? "light" : "dark";
+        try {
+          localStorage.setItem("theme", root.dataset.theme);
+        } catch (e) {}
+        label();
+      });
+    </script>
   </body>
 </html>
+
+<style>
+  .ghost {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    color: var(--faint);
+  }
+  .ghost:hover {
+    color: var(--accent);
+  }
+</style>

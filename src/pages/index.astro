@@ -6,8 +6,9 @@ const featured = (await getCollection("projects"))
   .filter((p) => !p.data.draft && p.data.featured)
   .sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 
-const experience = (await getCollection("experience"))
-  .sort((a, b) => a.data.order - b.data.order);
+const experience = (await getCollection("experience")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
 ---
 
 <Base
@@ -26,27 +27,36 @@ const experience = (await getCollection("experience"))
   </section>
 
   <section class="wrap" id="work">
-  <hr class="rule" />
-  <h2 class="reveal">Selected work</h2>
+    <hr class="rule" />
+    <h2 class="reveal">Selected work</h2>
 
-  {featured.map((p, i) => (
-    <article class="case reveal" style={`--delay:${i * 80}ms`}>
-      <p class="meta">
-        {p.data.year} · {p.data.role}
-        {p.data.status !== "shipped" && <span class="badge">{p.data.status}</span>}
-      </p>
-      <h3>
-        {p.data.writeup
-          ? <a href={`/work/${p.id}/`}>{p.data.title}</a>
-          : p.data.title}
-      </h3>
-      <p>{p.data.summary}</p>
-      <p class="meta stack">{p.data.stack.join(" · ")}</p>
-    </article>
-  ))}
+    {
+      featured.map((p, i) => (
+        <article class="case reveal" style={`--delay:${i * 80}ms`}>
+          <div class="rail">
+            <span class="meta">{p.data.year}</span>
+            {p.data.status !== "shipped" && (
+              <span class="badge">{p.data.status}</span>
+            )}
+          </div>
+          <div>
+            <h3>
+              {p.data.writeup ? (
+                <a href={`/work/${p.id}/`}>{p.data.title}</a>
+              ) : (
+                p.data.title
+              )}
+            </h3>
+            <p>{p.data.summary}</p>
+            <p class="note">{p.data.role}</p>
+            <p class="note stack">{p.data.stack.slice(0, 4).join(" · ")}</p>
+          </div>
+        </article>
+      ))
+    }
 
-  <p class="meta more"><a href="/work/">All projects →</a></p>
-</section>
+    <p class="meta more"><a href="/work/">All projects →</a></p>
+  </section>
 
   <section class="wrap" id="experience">
     <hr class="rule" />
@@ -122,93 +132,117 @@ const experience = (await getCollection("experience"))
 </Base>
 
 <style>
+  /* --- hero ------------------------------------------------ */
   .hero {
-    padding-block: clamp(4rem, 14vh, 9rem) var(--step);
+    padding-block: var(--s6) var(--s7);
   }
   .lede {
     font-size: 1.25rem;
     color: var(--muted);
-    margin-bottom: 2rem;
+    margin-bottom: var(--s4);
   }
+
+  /* --- sections -------------------------------------------- */
+  section {
+    padding-block: var(--s7) 0;
+  }
+  section > .rule {
+    margin-bottom: var(--s5);
+  }
+
+  /* --- featured work --------------------------------------- */
   .case {
-    padding-block: 2.5rem;
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--s5);
+    padding-block: var(--s6);
     border-bottom: 1px solid var(--line);
+    align-items: start;
   }
-  .case:last-child {
+  .case:last-of-type {
     border-bottom: 0;
   }
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    align-items: flex-start;
+    padding-top: 0.65rem;
+  }
   .case h3 {
-    margin: 0.5rem 0;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    margin: 0 0 var(--s3);
   }
   .case h3 a {
     text-decoration: none;
   }
-  .stack {
-    margin-top: 0.75rem;
-  }
-  .badge {
+  .case h3 a:hover {
     color: var(--accent);
-    margin-left: 0.75rem;
   }
-  .plain {
-    list-style: none;
-    padding: 0;
+  .case p {
+    margin: 0 0 var(--s2);
   }
-  .plain li {
-    padding-block: 0.9rem;
-    border-bottom: 1px solid var(--line);
-    max-width: var(--measure);
+  .stack {
+    color: var(--faint);
   }
-  section {
-    padding-block: var(--step) 0;
+  .more {
+    margin-top: var(--s5);
   }
+
+  /* --- experience ------------------------------------------ */
   .job {
     display: grid;
     grid-template-columns: 11rem 1fr;
-    gap: 1.5rem;
-    padding-block: 2rem;
+    gap: var(--s5);
+    padding-block: var(--s5);
     border-bottom: 1px solid var(--line);
+    align-items: start;
+  }
+  .job:last-of-type {
+    border-bottom: 0;
   }
   .job h3 {
     font-size: 1.25rem;
-    margin: 0 0 0.6rem;
+    margin: 0 0 var(--s2);
   }
   .job .org {
     font-family: var(--font-body);
     font-size: 1rem;
     color: var(--muted);
   }
-  .tight li {
-    border: 0;
-    padding-block: 0.25rem;
+  .job .plain li {
+    padding-block: 0.2rem;
+    max-width: var(--measure);
+  }
+
+  /* --- about / contact ------------------------------------- */
+  .about p {
+    margin-bottom: var(--s3);
   }
   .contact-line {
     font-family: var(--font-display);
     font-size: clamp(1.6rem, 4vw, 2.4rem);
+    margin-bottom: var(--s3);
   }
   .contact-links {
     display: flex;
-    gap: 1.5rem;
+    gap: var(--s4);
     flex-wrap: wrap;
-    margin-top: 2rem;
+    margin-top: var(--s4);
   }
+
+  /* --- narrow ---------------------------------------------- */
   @media (max-width: 700px) {
+    .case,
     .job {
       grid-template-columns: 1fr;
-      gap: 0.5rem;
+      gap: var(--s2);
     }
-  }
-  .row h3 {
-    font-size: 1.3rem;
-    margin: 0 0 0.4rem;
-  }
-  .row p {
-    margin: 0.3rem 0;
-  }
-  @media (max-width: 700px) {
-    .row {
-      grid-template-columns: 1fr;
-      gap: 0.4rem;
+    .rail {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--s3);
+      padding-top: 0;
     }
   }
 </style>
