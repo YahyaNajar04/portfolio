@@ -1,16 +1,5 @@
 [
   {
-    "id": "coderift",
-    "role": "Founder & Engineer",
-    "org": "Coderift Technologies",
-    "start": "2026", "end": "Present", "order": 1,
-    "points": [
-      "Solo software venture taking on web, mobile and AI integration work.",
-      "Client delivery end to end — scoping, architecture, build, deployment, handover."
-    ],
-    "stack": ["React Native", "Astro", "Tauri", "Supabase", "AWS"]
-  },
-  {
     "id": "llm-eval",
     "role": "Freelance AI & Frontend Developer",
     "org": "Contract",
