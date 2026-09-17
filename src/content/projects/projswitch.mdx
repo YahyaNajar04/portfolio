@@ -1,0 +1,86 @@
+---
+title: projswitch
+summary: A terminal project switcher that separates deciding from doing — every switch produces a plan you can read before anything runs.
+year: 2026
+status: in-development
+role: Sole developer — design, implementation
+featured: false
+writeup: true
+order: 50
+stack: [PowerShell 7, JSON]
+links:
+  - label: Repository
+    url: https://github.com/YahyaNajar04
+---
+
+Sixty-odd project folders on one drive. Starting work on any of them means the
+same four steps every time: change directory, activate the environment, open the
+right editor, run the start command. Different four steps per project, and I'd
+misremember them after a month away.
+
+`switch todotimer` should be the whole ritual.
+
+## Deciding and doing are different jobs
+
+The naive build is one script that does the four things. The version I wrote
+splits them: a **pure** function takes a project's config and returns an ordered
+list of actions, and a separate entry point decides what to do with that list.
+The planner changes no directories, starts no processes, writes nothing.
+
+Two things fall out of that split for free. A dry run is not a feature I had to
+add — it's the planner running without the executor, which is the default state.
+And the interesting logic is the only part with no side effects, so testing it is
+calling it and looking at what came back.
+
+The order within the plan is load-bearing rather than cosmetic: the directory
+change comes first because downstream tools read from the working directory,
+the editor launches after the environment so its integrated terminal inherits
+it, and the start command goes last because a dev server blocks the shell —
+anything scheduled after it never happens.
+
+## Make the failure impossible, not detectable
+
+Configs are one JSON file per project, looked up by filename. The obvious schema
+gives each file an `id` field too. Then the filename and the field can disagree —
+duplicate a config to bootstrap a new project, rename the file, forget the field
+inside, and you have a config loading under one name while claiming another.
+
+The reflex fix is to validate that they match. The better fix is to **not store
+it twice**: there is no `id` field, and the loader injects the id from the
+filename after parsing. Callers see a complete config and never learn where the
+id came from. Nothing can drift because there is nothing to drift from.
+
+That generalises. A check is code you maintain and a message you have to keep
+accurate. Removing the second source of truth removes the check along with the
+bug.
+
+## Errors that name what they looked for
+
+Required keys are validated by the loader. Optional keys drive the planner — a
+config with no `editor` isn't an error, it just produces a shorter plan. That
+line is what keeps the two halves from overlapping: one decides whether a config
+is *usable*, the other decides what to *do* with it.
+
+Five failures, five distinct messages: file missing, JSON unparseable, key
+absent, key present but empty, root not a directory. An early version reused one
+message across three of those checks, and it cost two debugging sessions chasing
+a disk problem that didn't exist — the message said "couldn't find root" on a run
+where root was found, because the condition behind it was inverted.
+
+An error that describes the wrong failure is worse than no error. It doesn't just
+fail to help; it actively sends you somewhere else.
+
+## What it can't do yet
+
+It prints. Nothing executes.
+
+That's deliberate for now, but there's a real obstacle in the way of the
+executor: **a script cannot change its parent shell's working directory.**
+`Set-Location` applies to the script's own scope and evaporates when it exits.
+This is the central problem of every project switcher ever written, and it
+decides the architecture rather than sitting inside it — the likely resolution is
+that `switch` stops being a script and becomes a function loaded from the
+PowerShell profile, where it runs in the caller's scope.
+
+Worth knowing before writing the executor rather than after. The plan layer
+doesn't care either way, which is the point of having built it separately.

@@ -1,0 +1,143 @@
+---
+title: Fire-Lookout
+summary: A first-person simulation of a fire lookout's season in the Himalayan foothills, where spotting smoke at fifteen kilometres is a skill you actually learn rather than a marker the game draws for you.
+year: 2026
+status: in-development
+role: Sole developer — design, implementation, art direction
+featured: false
+writeup: true
+order: 20
+stack: [Godot 4.5, GDScript, Terrain3D, Blender]
+links:
+  - label: Repository
+    url: https://github.com/YahyaNajar04/fire-look-out
+---
+
+A fire lookout sits alone on a peak for a season and watches. When smoke
+appears they take a bearing, radio it in, and a crew goes out. The job is
+mostly nothing happening, and the part that isn't nothing depends entirely on
+whether you noticed.
+
+I set it in the chir pine belt of the Shivaliks, 500 to 1,600 metres, because
+the fire ecology there is unusually good raw material. *Pinus roxburghii* drops
+something like 200,000 tonnes of needles a year across Jammu & Kashmir, and
+that litter is the region's primary fuel — dry, continuous, and quick to carry
+fire uphill. The fuel model wasn't invented for the game. It was already there.
+
+## The atmosphere is the mechanic, not the art pass
+
+The first thing I built was haze. Before a player controller, before the tower,
+before anything you could walk on.
+
+That sounds like getting the priorities backwards until you ask what the game
+actually is. The core loop is *discriminating smoke from not-smoke at
+distance*. If a column reads instantly at 25km the game has no skill in it; if
+it never reads, there's no game. Everything hangs on the falloff curve between
+those two failures, and that curve lives in depth fog with height falloff —
+which is exactly why it had to come first. Atmosphere here isn't decoration
+sitting on top of the design. It *is* the design.
+
+Height-based fog does the specific work: haze pools in valleys and thins with
+altitude, so ridges stay sharp while the low ground goes milky. That's also why
+lookouts are on peaks — above the murk they'd otherwise be looking through.
+
+## Godot and compasses disagree about which way is round
+
+The Osborne Fire Finder is the instrument the whole job runs through: a
+topographic map under glass, a rotating alidade, a rear peep sight and a front
+sight with a vertical hairline. You put the wire on the smoke and read the
+azimuth off a graduated ring.
+
+Two lines carry the mechanic. The first converts a node rotation into a
+bearing:
+
+```gdscript
+return fposmod(-rad_to_deg(alidade.rotation.y), 360.0)
+```
+
+Godot faces −Z and rotates counter-clockwise; a compass runs clockwise from
+north. The negation flips the handedness and `fposmod` wraps past north instead
+of handing back a negative bearing. Get it wrong and east reports as west —
+which survives a long time as a bug, because the number still *looks* like a
+bearing.
+
+The second line is the one that makes it a game rather than an alignment
+puzzle:
+
+```gdscript
+var offset_m := dist * tan(deg_to_rad(best_err))
+```
+
+That turns angular error into how far from the actual fire the crew ends up. At
+15km, being off by a single degree puts them 262 metres out — through forest,
+on a slope, while the fire grows. Precision stops being a score and becomes a
+consequence, and I didn't have to design that. It's just trigonometry being
+honest about what a lookout's job is.
+
+## Authentic and playable are different numbers
+
+The standard USFS L-4 cab is 14 by 14 feet. I built it at 4.3 metres and it
+felt like standing in a wardrobe.
+
+The reason is that a monitor at 75° FOV gives you a fraction of human
+peripheral vision, so a room that's comfortable in life reads as a closet on
+screen. The usual fix is widening the field of view — and I couldn't, because
+wider FOV shrinks everything on screen including distant smoke. In most games
+FOV is free. In this one it's the resource the entire mechanic is spending.
+
+So the cabin grew instead, to 6.6 metres of interior. Larger than any real
+lookout, and correct. The instrument is period-accurate to the inch and the
+room around it is a lie, because those two things are answerable to different
+masters.
+
+## A forest is three different problems
+
+Terrain3D's instancer renders hundreds of thousands of trees in a handful of
+draw calls, and the documentation is blunt that they have no collision at all —
+the meshes live on the GPU and the physics engine never hears about them. For a
+game where the forest is a workplace you cut wood in, that's not a small gap.
+
+It resolved into three tiers rather than one:
+
+**Instanced trees** are visual density — the dark mass that makes distant smoke
+hard to find. No collision, and none needed at a kilometre.
+
+**Pooled collision proxies** give the near ones physical presence. A script
+reads instance transforms out of the `MultiMeshInstance3D` nodes, and moves a
+fixed pool of cylinder-shaped `StaticBody3D`s to the trees within 40m of the
+player. Nothing is created or freed while you walk; bodies are recycled. A
+player who walks into a tree registers *"I stopped,"* not the shape of the bark,
+so a cylinder is the whole of what's required.
+
+**Real scenes** are the trees you interact with — deadwood you can fell — which
+need to be actual nodes because they need actual behaviour.
+
+The cost of that architecture was a full day lost to a subtler thing: the
+instancer takes the raw mesh resource and **ignores every transform in the
+scene file**. Blender exports FBX as Z-up, Godot corrects it with a rotation on
+the root node, and the instancer throws that correction away. The trees came
+out lying flat. The fix is exporting glTF, which bakes orientation into the
+vertices — and the lesson is that "the importer handles it" is only true until
+something downstream reads past the importer.
+
+## What it cost
+
+It isn't shipped, and the honest status is prototype: the lookout duties work
+end to end — sight, bearing, report, graded on accuracy — and the survival half
+is mostly design document.
+
+The scope roughly doubled partway through. I'd written the forest as somewhere
+you occasionally hike to, and the game I actually wanted had chopping, water,
+hunting and storage in it, which is a second game's worth of systems sharing a
+map with the first. That was the right call and I'd make it again, but I made
+it after building around the opposite assumption, and the design document had
+to be rewritten rather than extended.
+
+The unsolved problem is the one the game spends most of its time looking at.
+Instanced forest reaches perhaps a kilometre; the horizon the player is scanning
+is twenty-five. Distant terrain needs billboard impostors or baked backdrop
+geometry, and I've done neither, which means the most important view in the game
+is currently the least finished thing in it. The mechanic is proven at test
+distances against placeholder columns. Proving it against a real horizon is
+still ahead of me, and I'd rather say that than describe the prototype as the
+game.

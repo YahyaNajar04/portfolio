@@ -1,0 +1,115 @@
+---
+title: LockedIn
+summary: A desktop time-tracker built on Tauri and React, where the timer logic is designed to be honest about pauses — and the storage layer is designed to forget it was ever localStorage.
+year: 2026
+status: in-development
+role: Sole developer — design, implementation
+featured: false
+writeup: true
+order: 30
+stack: [Tauri v2, React 19, TypeScript, pnpm workspaces, Tailwind v4]
+links:
+  - label: Repository
+    url: https://github.com/YahyaNajar04/todotimer
+---
+
+The premise is simple: pick a category, start a timer, stop when you're done.
+The insight that made it worth building was noticing how many tools in this
+space either count incorrectly or lie about it. Pause a session, come back
+in an hour, and the elapsed display includes that hour. The number is wrong
+and nothing tells you it is. LockedIn accounts for every pause to the
+millisecond, not because the display needs that precision, but because the
+data going into weekly stats does.
+
+## The storage layer knows it will be replaced
+
+The application writes everything to localStorage. That isn't the long-term
+plan — Supabase is, once the desktop version is stable — and the architecture
+reflects that from the start.
+
+All reads and writes go through a single file, `packages/utils/src/storage.ts`.
+Components and timer logic never touch `localStorage` directly. They call
+`saveSession`, `getSessions`, `saveTodo`. The interface those functions expose
+doesn't reveal what's underneath them, which means swapping the backend later
+is a one-file replacement rather than a hunt through every component that ever
+called `localStorage.getItem`.
+
+That decision cost nothing at this scale. It will save a week later.
+
+## A pause is not the same as nothing
+
+The naive approach to elapsed time is `Date.now() - session.startTime`. It's
+wrong the moment you add pause and resume, because the paused interval reads as
+time spent working.
+
+The `Session` type carries two fields to fix this:
+
+```ts
+pausedAt: number | null;
+totalPausedMs: number;
+```
+
+When a session is paused, `pausedAt` records the timestamp. When it resumes,
+the difference is accumulated into `totalPausedMs` and `pausedAt` clears.
+Elapsed time anywhere in the application is then:
+
+```ts
+Date.now() - session.startTime - session.totalPausedMs
+```
+
+That's the only formula. It works the same whether the session has been paused
+once or a dozen times, and it means the weekly stats are adding up real work
+rather than real work plus every distraction that happened between start and
+stop.
+
+## Three timer modes, one Session type
+
+The application has three modes: a stopwatch that counts up, a countdown from
+a set duration, and a Pomotdoro cycle that alternates 25-minute work phases with
+5-minute breaks. Three different behaviours from the same underlying entity.
+
+Rather than three separate session types, a single `Session` carries the fields
+that distinguish them:
+
+```ts
+mode: "stopwatch" | "countdown" | "pomodoro";
+targetDuration: number | null;
+pomodoroPhase: "work" | "break" | null;
+pomodoroCount: number;
+```
+
+Stopwatch sets `targetDuration` to null and ignores the phase fields. Countdown
+sets `targetDuration` to whatever the user entered. Pomodoro uses all four —
+`targetDuration` changes when the phase advances, `pomodoroCount` increments
+each time a work phase ends. The display logic reads `mode` and decides what to
+show, but the storage and the pause accounting are the same in every case. The
+complexity lives in the factory functions, not spread across the types.
+
+## The monorepo earns its weight at the type boundary
+
+The project is a pnpm workspace: `apps/desktop` for the Tauri application,
+`packages/types` for shared interfaces, `packages/utils` for storage and timer
+logic. A `packages/ui` is scaffolded and currently empty.
+
+At this size that structure looks like overhead. What it actually does is make
+the type boundary explicit. The desktop app imports from `@todotimer/types` and
+`@todotimer/utils`, not from relative paths into other packages, which means
+the interface between the UI and the business logic is a public API rather than
+a file you happen to be able to reach. When a mobile app or a web client comes
+later, it imports the same packages. The types don't drift.
+
+## What it is and isn't
+
+The core loop works: create a category, start a timer in any of the three modes,
+pause and resume, stop. Per-category todo lists are implemented. The session
+data is accurate.
+
+What isn't there yet is the UI pass and the statistics layer. The home screen is
+a grid of category cards showing today's total; the category detail page has a
+working timer and a working todo list; the visual design is functional but not
+finished. The weekly view is a design document.
+
+The Supabase backend and the mobile client are both explicitly deferred until
+the desktop version is something I'd hand to someone. That ordering was
+deliberate. A sync layer on top of broken timer math just means the wrong
+numbers are in more places.
