@@ -1,0 +1,86 @@
+---
+title: Pebbles & Petals
+summary: A preschool's public website in a Himalayan town, built so parents on slow phone connections can find fees, photos, and a WhatsApp button in under a second.
+year: 2026
+status: shipped
+role: Sole developer — design direction, implementation, deployment
+featured: false
+writeup: true
+order: 30
+stack: [Astro, Tailwind CSS, TypeScript, Vercel]
+links:
+  - label: Live site
+    url: https://pebblesandpetals.in
+  - label: Repository
+    url: https://github.com/YahyaNajar04/pebblesandpetals
+---
+
+A new preschool in Kishtwar had brochures, a fee sheet, and a WhatsApp number.
+What they didn't have was anywhere to send a parent who asked "what do you
+actually charge?" — and the parent asking was almost always on a phone, on a
+connection that makes a 3 MB hero image a real cost.
+
+## The boring framework was the right one
+
+I know React. React is the wrong tool here. This is a content site — text,
+prices, photos, a phone link — with no state worth managing and nothing that
+reacts to anything. Shipping a runtime so that a fee table can render is a tax
+paid by every parent on every visit.
+
+Astro ships HTML. The framework disappears at build time, and what reaches the
+phone is markup and a few kilobytes of hand-written JavaScript. The components
+still feel like JSX, so nothing about authoring got worse.
+
+## Content is data, and data has one home
+
+Every changeable thing — fees, programs, staff bios, FAQ answers, the phone
+number — lives in `src/data/*.json`, separate from the markup that renders it.
+This isn't tidiness for its own sake. Monthly tuition appears on the home page
+*and* the fees page; when the school raises UKG by ₹100, that's one number in
+one file, not two templates to keep in sync and eventually forget to.
+
+The same rule pushed the WhatsApp number into a single module that derives the
+`wa.me` link, the `tel:` link, and the pre-filled enquiry message. It had been
+hardcoded in four components before I noticed I'd be the one updating all four.
+
+## The filesystem as the content interface
+
+Photos don't get registered anywhere. A build-time `readdirSync` over
+`public/gallery/` becomes the gallery; staff headshots resolve by deriving a
+filename from the person's name and checking whether that file exists, falling
+back to an illustrated avatar when it doesn't. Adding a photo means adding a
+photo.
+
+This is a deliberate trade of flexibility for a shorter instruction manual. The
+school cannot reorder images arbitrarily — ordering is alphabetical, so you
+prefix `01_`. In exchange, nobody has to be taught a schema.
+
+## Hand-rolling the interactions, and what that taught me
+
+The carousel, lightbox, and bio modals are vanilla JS with no dependencies. Two
+things I would not have learned by installing a library:
+
+`scrollLeft` rounds. An auto-scrolling strip that advances 0.5px per frame
+never moves at all, because each frame reads back the rounded value and adds to
+that. The fix is keeping the true position in your own float and pushing it
+into the DOM — obvious afterwards, invisible beforehand.
+
+And pointer events fight native scrolling on touch. My drag-to-scroll handler
+worked beautifully on a trackpad and made the same strip nearly unusable on a
+phone, because iOS momentum scrolling and my `requestAnimationFrame` loop were
+both writing scroll position. Touch now falls through to the browser's own
+scrolling entirely; the custom path is mouse-only. The lesson is that the
+platform's implementation is better than mine and the work is knowing when to
+get out of its way.
+
+## What it cost
+
+The site is statically built, so publishing a change means a rebuild — fine for
+a school that revises fees once a year, wrong for anything with daily content.
+
+The larger cost is unfinished: the JSON content layer was designed to sit under
+a Git-based CMS so staff could edit fees and photos themselves. That isn't
+shipped. Until it is, the school's self-service editing story is *"message the
+developer"* — which is exactly the dependency the architecture was meant to
+remove. The structure is right and the last mile is missing, and I'd rather say
+that than describe the intent as the outcome.

@@ -2,15 +2,12 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 
-const all = (await getCollection("projects"))
-  .filter((p) => !p.data.draft)
+const featured = (await getCollection("projects"))
+  .filter((p) => !p.data.draft && p.data.featured)
   .sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 
-const caseStudies = all.filter((p) => p.data.tier === "case-study");
-const secondary = all.filter((p) => p.data.tier === "secondary");
-const experience = (await getCollection("experience")).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+const experience = (await getCollection("experience"))
+  .sort((a, b) => a.data.order - b.data.order);
 ---
 
 <Base
@@ -28,70 +25,28 @@ const experience = (await getCollection("experience")).sort(
     </p>
   </section>
 
-  <section class="wrap" id="about">
-    <hr class="rule" />
-    <h2 class="reveal">About</h2>
-    <div class="reveal about">
-      <p>
-        I build production systems across web, mobile and desktop — most
-        recently a retail inventory app in React Native and a cross-platform
-        desktop time tracker in Tauri. I hold an MSc in Artificial Intelligence
-        and a BSc in Software Engineering from Asia Pacific University in
-        Malaysia.
-      </p>
-      <p>
-        My AI work so far is a hackathon claim-verification system and
-        coursework-grade supervised learning. I'm honest about that: I'm a
-        software engineer moving toward AI engineering, not someone claiming to
-        have arrived. What I bring is shipping discipline — leakage-safe
-        pipelines, measured results, and the willingness to say what a number
-        actually means.
-      </p>
-      <p class="meta">
-        <a href="/Muhammed_Yahya_Najar_Resume_2026.pdf">Download résumé (PDF)</a>
-      </p>
-    </div>
-  </section>
-
   <section class="wrap" id="work">
-    <hr class="rule" />
-    <h2 class="reveal">Selected work</h2>
+  <hr class="rule" />
+  <h2 class="reveal">Selected work</h2>
 
-    {
-      caseStudies.map((p, i) => (
-        <article class="case reveal" style={`--delay:${i * 80}ms`}>
-          <p class="meta">
-            {p.data.year} · {p.data.role}
-            {p.data.status !== "shipped" && (
-              <span class="badge">{p.data.status}</span>
-            )}
-          </p>
-          <h3>
-            <a href={`/work/${p.id}/`}>{p.data.title}</a>
-          </h3>
-          <p>{p.data.summary}</p>
-          <p class="meta stack">{p.data.stack.join(" · ")}</p>
-        </article>
-      ))
-    }
-  </section>
+  {featured.map((p, i) => (
+    <article class="case reveal" style={`--delay:${i * 80}ms`}>
+      <p class="meta">
+        {p.data.year} · {p.data.role}
+        {p.data.status !== "shipped" && <span class="badge">{p.data.status}</span>}
+      </p>
+      <h3>
+        {p.data.writeup
+          ? <a href={`/work/${p.id}/`}>{p.data.title}</a>
+          : p.data.title}
+      </h3>
+      <p>{p.data.summary}</p>
+      <p class="meta stack">{p.data.stack.join(" · ")}</p>
+    </article>
+  ))}
 
-  {
-    secondary.length > 0 && (
-      <section class="wrap">
-        <hr class="rule" />
-        <h2 class="reveal">Also shipped</h2>
-        <ul class="plain reveal">
-          {secondary.map((p) => (
-            <li>
-              <strong>{p.data.title}</strong> — {p.data.summary}
-              <span class="meta"> {p.data.year}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )
-  }
+  <p class="meta more"><a href="/work/">All projects →</a></p>
+</section>
 
   <section class="wrap" id="experience">
     <hr class="rule" />
@@ -118,6 +73,32 @@ const experience = (await getCollection("experience")).sort(
         </article>
       ))
     }
+  </section>
+
+  <section class="wrap" id="about">
+    <hr class="rule" />
+    <h2 class="reveal">About</h2>
+    <div class="reveal about">
+      <p>
+        I build production systems across web, mobile and desktop — most
+        recently a retail inventory app in React Native and a cross-platform
+        desktop time tracker in Tauri. I hold an MSc in Artificial Intelligence
+        and a BSc in Software Engineering from Asia Pacific University in
+        Malaysia.
+      </p>
+      <p>
+        My AI work so far is a hackathon claim-verification system and
+        coursework-grade supervised learning. I'm honest about that: I'm a
+        software engineer moving toward AI engineering, not someone claiming to
+        have arrived. What I bring is shipping discipline — leakage-safe
+        pipelines, measured results, and the willingness to say what a number
+        actually means.
+      </p>
+      <p class="meta">
+        <a href="/Muhammed_Yahya_Najar_Resume_2026.pdf">Download résumé (PDF)</a
+        >
+      </p>
+    </div>
   </section>
 
   <section class="wrap" id="contact">
@@ -215,6 +196,19 @@ const experience = (await getCollection("experience")).sort(
     .job {
       grid-template-columns: 1fr;
       gap: 0.5rem;
+    }
+  }
+  .row h3 {
+    font-size: 1.3rem;
+    margin: 0 0 0.4rem;
+  }
+  .row p {
+    margin: 0.3rem 0;
+  }
+  @media (max-width: 700px) {
+    .row {
+      grid-template-columns: 1fr;
+      gap: 0.4rem;
     }
   }
 </style>

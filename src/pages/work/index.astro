@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const projects = (await getCollection('projects'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.year - a.data.year || a.data.order - b.data.order);
+---
+<Base title="Work — Muhammed Yahya Najar" description="Everything I've built — shipped products, client work, and research.">
+  <section class="wrap archive">
+    <h1>Work</h1>
+    <p class="lede">Everything, newest first. Some have write-ups.</p>
+
+    <ul class="plain">
+      {projects.map((p) => (
+        <li class="row reveal">
+          <span class="meta year">{p.data.year}</span>
+          <div>
+            <h3>
+              {p.data.writeup
+                ? <a href={`/work/${p.id}/`}>{p.data.title}</a>
+                : p.data.title}
+              {p.data.status !== 'shipped' && <span class="badge">{p.data.status}</span>}
+            </h3>
+            <p>{p.data.summary}</p>
+            <p class="meta">{p.data.stack.join(' · ')}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+    <p class="meta"><a href="/">← Home</a></p>
+  </section>
+</Base>
+
+<style>
+  .archive { padding-block: 4rem 6rem; }
+  .row { display: grid; grid-template-columns: 6rem 1fr; gap: 1.5rem;
+    padding-block: 1.75rem; border-bottom: 1px solid var(--line); }
+  .row h3 { font-size: 1.3rem; margin: 0 0 0.4rem; }
+  .row p { margin: 0.3rem 0; }
+  @media (max-width: 700px) { .row { grid-template-columns: 1fr; gap: 0.4rem; } }
+</style>
