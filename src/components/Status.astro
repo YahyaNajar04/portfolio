@@ -1,0 +1,16 @@
+---
+interface Props {
+  status: "shipped" | "in-development" | "archived" | "research";
+}
+
+const labels = {
+  shipped: ["Shipped", ""],
+  "in-development": ["In development", "dot-amber"],
+  research: ["Research", "dot-amber"],
+  archived: ["Archived", "dot-muted"],
+} as const;
+
+const [label, tone] = labels[Astro.props.status];
+---
+
+<span class="pill"><span class={`dot ${tone}`} aria-hidden="true"></span>{label}</span>

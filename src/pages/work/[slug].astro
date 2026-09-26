@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Status from '../../components/Status.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -14,47 +15,141 @@ const { Content } = await render(project);
 const d = project.data;
 ---
 <Base title={`${d.title} — Muhammed Yahya Najar`} description={d.summary}>
-  <article class="wrap study">
-    <p class="meta">{d.year} · {d.status} · {d.role}</p>
-    <h1>{d.title}</h1>
-    <p class="lede">{d.summary}</p>
+  <article class="study">
+    <header class="wrap intro">
+      <p class="eyebrow"><a href="/work/">Work</a> / {d.title}</p>
+      <h1>{d.title}</h1>
+      <p class="lede">{d.summary}</p>
 
-    {d.stack.length > 0 && <p class="meta">{d.stack.join(' · ')}</p>}
+      <dl class="facts">
+        <div><dt>Year</dt><dd class="num">{d.year}</dd></div>
+        <div><dt>Status</dt><dd><Status status={d.status} /></dd></div>
+        <div class="wide"><dt>Role</dt><dd>{d.role}</dd></div>
+        {d.stack.length > 0 && (
+          <div class="wide"><dt>Stack</dt><dd>{d.stack.join(' · ')}</dd></div>
+        )}
+      </dl>
+    </header>
 
     {d.metrics.length > 0 && (
-      <dl class="metrics">
-        {d.metrics.map((m) => (
-          <div>
-            <dt class="meta">{m.label}</dt>
-            <dd class="value">{m.value}</dd>
-            <dd class="prov">{m.source}</dd>
+      <div class="wrap">
+        <dl class="metrics">
+          {d.metrics.map((m) => (
+            <div>
+              <dt>{m.label}</dt>
+              <dd class="value num">{m.value}</dd>
+              <dd class="prov">{m.source}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    )}
+
+    <div class="wrap">
+      <div class="prose"><Content /></div>
+
+      <footer class="study-foot">
+        {d.links.length > 0 && (
+          <div class="links">
+            {d.links.map((l, i) => (
+              <a href={l.url} class={`btn ${i === 0 ? 'btn-primary' : 'btn-secondary'}`}>{l.label} ↗</a>
+            ))}
           </div>
-        ))}
-      </dl>
-    )}
-
-    <hr class="rule" />
-    <div class="prose"><Content /></div>
-
-    {d.links.length > 0 && (
-      <p class="meta links">
-        {d.links.map((l) => <a href={l.url}>{l.label}</a>)}
-      </p>
-    )}
-    <p class="meta"><a href="/#work">← All work</a></p>
+        )}
+        <a href="/work/" class="back">← All work</a>
+      </footer>
+    </div>
   </article>
 </Base>
 
 <style>
-  .study { padding-block: 4rem 6rem; }
-  .lede { font-size: 1.25rem; color: var(--muted); }
-  .metrics { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    margin-block: 2.5rem; padding: 1.5rem; background: var(--tint); border-radius: 4px; }
-  .metrics div { margin: 0; }
+  .study { padding-block: var(--s6) var(--s7); }
+  .intro { max-width: calc(52rem + 2 * var(--gutter)); }
+  .eyebrow a { color: inherit; text-decoration: none; }
+  .eyebrow a:hover { color: var(--ink); }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s4);
+    margin: var(--s5) 0 0;
+    padding-top: var(--s4);
+    border-top: 1px solid var(--hairline);
+  }
+  .facts .wide { grid-column: span 2; }
+  .facts dt { font-size: 0.8125rem; font-weight: 500; color: var(--muted); margin-bottom: 0.3rem; }
+  .facts dd { margin: 0; color: var(--ink); font-size: 0.9375rem; }
+
+  .metrics {
+    display: grid;
+    gap: var(--s4);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    margin: var(--s6) 0 0;
+    padding: var(--s5);
+    background: var(--dark);
+    color: var(--on-dark-soft);
+    border-radius: var(--r-lg);
+  }
+  .metrics dt { font-size: 0.8125rem; font-weight: 500; }
   .metrics dd { margin: 0; }
-  .value { font-family: var(--font-mono); font-size: 1.6rem; line-height: 1.2; margin-block: 0.3rem !important; }
-  .prov { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
-  .prose { max-width: var(--measure); }
-  .prose :global(h2) { margin-top: 2.5rem; }
-  .links { display: flex; gap: 1.5rem; margin-top: 3rem; }
+  .value {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    line-height: 1.1;
+    color: var(--on-dark);
+    letter-spacing: -0.01em;
+    margin-block: 0.4rem !important;
+  }
+  .prov { font-size: 0.8125rem; line-height: 1.5; }
+
+  .prose {
+    max-width: 44rem;
+    margin: var(--s6) auto 0;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+  .prose :global(h2) {
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    margin: var(--s6) 0 var(--s3);
+  }
+  .prose :global(p) { margin: 0 0 var(--s4); }
+  .prose :global(strong) { color: var(--ink); font-weight: 600; }
+  .prose :global(:not(pre) > code) {
+    background: var(--surface-card);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  .prose :global(pre) {
+    padding: var(--s4);
+    border-radius: var(--r-lg);
+    overflow-x: auto;
+    font-size: 0.875rem;
+    margin: 0 0 var(--s4);
+  }
+  .prose :global(blockquote) {
+    margin: var(--s5) 0;
+    padding-left: var(--s4);
+    border-left: 2px solid var(--primary);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--ink);
+  }
+
+  .study-foot {
+    max-width: 44rem;
+    margin: var(--s6) auto 0;
+    padding-top: var(--s5);
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s4);
+  }
+  .links { display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .back { font-weight: 500; text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
 </style>

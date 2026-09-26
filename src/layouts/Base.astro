@@ -12,6 +12,10 @@ const { title, description, ogImage } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const og = ogImage ? new URL(ogImage, Astro.site) : null;
 const year = new Date().getFullYear();
+
+// logo-mark.svg, inlined so it can take currentColor on dark surfaces
+const mark =
+  "M95 230V95h41.8l52.2 87.3c28.8 47.9 52.8 88 53.5 88.9 1 1.5 8.7-11.1 53.5-87.2L348.3 95H390v270h-48V187.5l-43.8 73.2-43.7 73.2-23.1.1-43.4-71.5-43.5-71.5-.3 87L144 365H95V230Z";
 ---
 
 <!doctype html>
@@ -26,7 +30,16 @@ const year = new Date().getFullYear();
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#f6f4ef" />
+    <meta
+      name="theme-color"
+      content="#faf9f5"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#181715"
+      media="(prefers-color-scheme: dark)"
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -53,35 +66,98 @@ const year = new Date().getFullYear();
   <body>
     <a href="#main" class="skip">Skip to content</a>
 
-    <header class="wrap site-head">
-      <a href="/" class="brand">
-        <img src="/logo-mark.svg" alt="" width="26" height="26" />
-        <span class="meta">Muhammed Yahya Najar</span>
-      </a>
-      <nav class="meta">
-        <a href="/#work">Work</a>
-        <a href="/#experience">Experience</a>
-        <a href="/#about">About</a>
-        <a href="/#contact">Contact</a>
-      </nav>
-      <button
-        id="theme-toggle"
-        class="meta ghost"
-        type="button"
-        aria-label="Switch colour theme">Theme</button
-      >
+    <header class="site-head">
+      <div class="wrap">
+        <a href="/" class="brand" aria-label="Muhammed Yahya Najar — home">
+          <svg viewBox="0 0 485 460" width="24" height="23" aria-hidden="true">
+            <path fill="currentColor" d={mark}></path>
+          </svg>
+          <span translate="no">Yahya Najar</span>
+        </a>
+        <nav aria-label="Primary">
+          <a href="/#work">Work</a>
+          <a href="/#experience">Experience</a>
+          <a href="/#about">About</a>
+        </nav>
+        <a href="/#contact" class="btn btn-primary">Get in touch</a>
+        <button
+          id="theme-toggle"
+          class="icon-btn"
+          type="button"
+          aria-label="Toggle dark mode"
+        >
+          <svg
+            class="i-moon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            ><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg
+          >
+          <svg
+            class="i-sun"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+            ><circle cx="12" cy="12" r="4"></circle><path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            ></path></svg
+          >
+        </button>
+      </div>
     </header>
 
     <main id="main"><slot /></main>
 
-    <footer class="wrap site-foot">
-      <hr class="rule" />
-      <p class="meta">
-        &copy; {year} &middot;
-        <a href="mailto:mynajar04@gmail.com">mynajar04@gmail.com</a> &middot;
-        <a href="https://github.com/YahyaNajar04">GitHub</a> &middot;
-        <a href="https://www.linkedin.com/in/yahya-najar">LinkedIn</a>
-      </p>
+    <footer class="site-foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a href="/" class="brand">
+              <svg
+                viewBox="0 0 485 460"
+                width="24"
+                height="23"
+                aria-hidden="true"
+              >
+                <path fill="currentColor" d={mark}></path>
+              </svg>
+              <span translate="no">Muhammed Yahya Najar</span>
+            </a>
+            <p>Software engineer. India &amp; Malaysia.</p>
+          </div>
+          <div>
+            <h2>Site</h2>
+            <ul class="plain">
+              <li><a href="/work/">All work</a></li>
+              <li><a href="/#experience">Experience</a></li>
+              <li><a href="/Muhammed_Yahya_Najar_Resume_2026.pdf">Résumé (PDF)</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Elsewhere</h2>
+            <ul class="plain">
+              <li><a href="mailto:mynajar04@gmail.com">Email</a></li>
+              <li><a href="https://github.com/YahyaNajar04">GitHub</a></li>
+              <li><a href="https://www.linkedin.com/in/yahya-najar">LinkedIn</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>&copy; {year} Muhammed Yahya Najar</span>
+          <span>Built with Astro</span>
+        </div>
+      </div>
     </footer>
 
     <script>
@@ -95,45 +171,35 @@ const year = new Date().getFullYear();
               io.unobserve(e.target); // reveal once, then stop watching
             }
           },
-          { rootMargin: "0px 0px -12% 0px", threshold: 0.1 },
+          { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
         );
         items.forEach((el) => io.observe(el));
       }
+
+      // hairline under the header only once the page has scrolled
+      const head = document.querySelector(".site-head");
+      const onScroll = () =>
+        head?.classList.toggle("is-stuck", window.scrollY > 8);
+      onScroll();
+      addEventListener("scroll", onScroll, { passive: true });
     </script>
     <script>
       const btn = document.getElementById("theme-toggle");
       const root = document.documentElement;
-      const label = () => {
-        const dark = root.dataset.theme
+      const isDark = () =>
+        root.dataset.theme
           ? root.dataset.theme === "dark"
           : matchMedia("(prefers-color-scheme: dark)").matches;
-        btn!.textContent = dark ? "Light" : "Dark";
-      };
-      label();
+      const sync = () =>
+        btn?.setAttribute("aria-pressed", String(isDark()));
+      sync();
       btn?.addEventListener("click", () => {
-        const dark = root.dataset.theme
-          ? root.dataset.theme === "dark"
-          : matchMedia("(prefers-color-scheme: dark)").matches;
-        root.dataset.theme = dark ? "light" : "dark";
+        root.dataset.theme = isDark() ? "light" : "dark";
         try {
           localStorage.setItem("theme", root.dataset.theme);
         } catch (e) {}
-        label();
+        sync();
       });
     </script>
   </body>
 </html>
-
-<style>
-  .ghost {
-    background: none;
-    border: 0;
-    cursor: pointer;
-    padding: 0;
-    font: inherit;
-    color: var(--faint);
-  }
-  .ghost:hover {
-    color: var(--accent);
-  }
-</style>
