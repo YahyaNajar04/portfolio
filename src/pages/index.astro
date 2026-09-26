@@ -217,7 +217,7 @@ const experience = (await getCollection("experience")).sort(
   }
   .hero h1 em {
     font-style: italic;
-    color: var(--primary);
+    color: var(--accent-text);
   }
   .avail {
     display: inline-flex;
@@ -255,7 +255,7 @@ const experience = (await getCollection("experience")).sort(
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #3a3733;
+    background: #34483c;
   }
   .term-bar b {
     font: 500 0.75rem var(--font-mono);
@@ -275,10 +275,10 @@ const experience = (await getCollection("experience")).sort(
     color: var(--primary);
   }
   .term .c {
-    color: #7d7a72;
+    color: #74806f;
   }
   .term .n {
-    color: #6c6a64;
+    color: #5d6a5f;
   }
   .term .s {
     color: var(--amber);
@@ -439,14 +439,14 @@ const experience = (await getCollection("experience")).sort(
   .points {
     margin: 0 0 var(--s3);
     padding-left: 1.1rem;
-    color: #cfcbc2;
+    color: var(--on-dark-body);
   }
   .points li {
     max-width: var(--measure);
     padding-block: 0.2rem;
   }
   .points li::marker {
-    color: #5a5750;
+    color: #4f6155;
   }
   .tags {
     display: flex;
@@ -520,20 +520,20 @@ const experience = (await getCollection("experience")).sort(
     margin: 0;
   }
   .btn-cream {
-    background: #faf9f5;
-    color: #141413;
+    background: var(--dark);
+    color: #f3f1e8;
   }
   .btn-cream:hover {
-    background: #efe9de;
-    color: #141413;
+    background: #0b120e;
+    color: #f3f1e8;
   }
   .btn-ghost {
     color: var(--on-primary);
-    border-color: rgb(255 255 255 / 0.45);
+    border-color: rgb(20 26 22 / 0.4);
   }
   .btn-ghost:hover {
     color: var(--on-primary);
-    border-color: #fff;
+    border-color: var(--on-primary);
   }
 
   /* --- responsive ------------------------------------------ */
